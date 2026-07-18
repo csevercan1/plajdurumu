@@ -1349,11 +1349,11 @@
             </p>
           </div>
 
-          <!-- Yüzme & Boğulma Riski Kartı -->
+          <!-- Deniz Durumu / Dalgalanma İndeksi Kartı -->
           <div class="safety-card">
             <div class="safety-header">
-              <span class="safety-title">⚠️ Yüzme Güvenliği & Boğulma Riski</span>
-              <span class="safety-badge safe" id="safetyBadge">Düşük Risk / Güvenli</span>
+              <span class="safety-title">📊 Deniz Durumu &amp; Dalgalanma İndeksi</span>
+              <span class="safety-badge safe" id="safetyBadge">Durgun</span>
             </div>
             
             <div class="risk-bar-container">
@@ -1362,19 +1362,11 @@
                 <div class="risk-bar-pointer" id="riskBarPointer" style="left: 0%;"></div>
               </div>
               <div class="risk-bar-labels">
-                <span>Çok Düşük</span>
+                <span>Durgun</span>
                 <span>Hafif</span>
                 <span>Orta</span>
-                <span>Yüksek</span>
-                <span>Tehlikeli</span>
-              </div>
-            </div>
-
-            <div class="safety-advice-box">
-              <div class="safety-advice-icon" id="safetyAdviceIcon">🟢</div>
-              <div class="safety-advice-text">
-                <strong id="safetyAdviceTitle">Denize Girmek Güvenli</strong>
-                <p id="safetyAdviceDesc">Koşullar yüzmek için son derece elverişli. Sahilde ve denizde güvenle vakit geçirebilirsiniz.</p>
+                <span>Sert</span>
+                <span>Çok Sert</span>
               </div>
             </div>
           </div>
@@ -2424,55 +2416,34 @@
         riskScore += 5;
       }
 
-      // Clamp riskScore 0-100
+      // Clamp riskScore 0-100 (Sea state index percentage)
       riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
 
-      // Classify Risk & Set UI
+      // Classify Sea State & Set UI
       let riskLabel = "";
       let riskClass = "";
-      let adviceIcon = "";
-      let adviceTitle = "";
-      let adviceDesc = "";
 
       if (riskScore <= 25) {
-        riskLabel = `${riskScore}% - Çok Düşük Risk / Güvenli`;
+        riskLabel = `${riskScore}% - Durgun (Çok Hafif)`;
         riskClass = "safe";
-        adviceIcon = "🟢";
-        adviceTitle = "Denize Girmek Son Derece Güvenli & Sahile Gidilebilir";
-        adviceDesc = "Deniz son derece sakin ve güvenli. Her seviyeden yüzücü ve çocuklar için yüzmeye son derece uygundur. Sahile gitmek ve yüzmek için harika bir gün!";
       } else if (riskScore <= 50) {
-        riskLabel = `${riskScore}% - Hafif Risk`;
+        riskLabel = `${riskScore}% - Hafif Dalgalı`;
         riskClass = "low";
-        adviceIcon = "🔵";
-        adviceTitle = "Yüzülebilir / Tedbirli Olunması Önerilir";
-        adviceDesc = "Denizde hafif dalgalar var. Kendine güvenen yüzücüler için uygundur; ancak çocuklar ve deneyimsiz yüzücüler için gözetim ve dikkat şarttır. Sahile gitmekte hiçbir sakınca yoktur.";
       } else if (riskScore <= 70) {
-        riskLabel = `${riskScore}% - Orta Derece Risk`;
+        riskLabel = `${riskScore}% - Orta Dalgalı`;
         riskClass = "medium";
-        adviceIcon = "🟡";
-        adviceTitle = "Dikkatli Olun / Denize Girilmesi Pek Önerilmez";
-        adviceDesc = "Dalga seviyesi ve rüzgâr hızı yükselmiştir. Sinsi çeken akıntılar (rip) oluşabilir. İyi yüzme bilseniz dahi açılmamanız ve kıyıda kalmanız, çocukları ise suya sokmamanız tavsiye edilir.";
       } else if (riskScore <= 85) {
-        riskLabel = `${riskScore}% - Yüksek Risk`;
+        riskLabel = `${riskScore}% - Sert (Kuvvetli Dalgalı)`;
         riskClass = "high";
-        adviceIcon = "🟠";
-        adviceTitle = "Tehlikeli! Denize Girmeyin, Sahilde Kalın";
-        adviceDesc = "Sert dalga kırılmaları ve tehlikeli çeken akıntılar bulunmaktadır. Denize girmek can güvenliğiniz için kesinlikle önerilmez. Sahile manzara izlemek veya yürümek için gidebilirsiniz ancak suya girmeyiniz.";
       } else {
-        riskLabel = `${riskScore}% - Hayati Tehlike`;
+        riskLabel = `${riskScore}% - Çok Sert (Tehlikeli Deniz)`;
         riskClass = "critical";
-        adviceIcon = "🔴";
-        adviceTitle = "Hayati Tehlike! Sahile Gitmeyin";
-        adviceDesc = "Aşırı fırtınalı deniz koşulları, dev dalgalar ve öldürücü çeken akıntılar aktiftir. Boğulma riski en üst düzeydedir. Denize girmek kesinlikle yasaktır, ayrıca dalga çarpmaları riski nedeniyle sahilde/kıyıda durulmamalıdır.";
       }
 
       document.getElementById('safetyBadge').innerText = riskLabel;
       document.getElementById('safetyBadge').className = `safety-badge ${riskClass}`;
       document.getElementById('riskBarFill').style.width = `${100 - riskScore}%`;
       document.getElementById('riskBarPointer').style.left = `${riskScore}%`;
-      document.getElementById('safetyAdviceIcon').innerText = adviceIcon;
-      document.getElementById('safetyAdviceTitle').innerText = adviceTitle;
-      document.getElementById('safetyAdviceDesc').innerText = adviceDesc;
 
       // 6. Draw Chart.js Line Chart
       drawChart(marine);
