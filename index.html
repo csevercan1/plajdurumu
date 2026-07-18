@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caner Severcan - Deniz & Dalga Durumu Raporu</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Dünya genelinde ve Türkiye sahillerinde dalga yüksekliği, deniz suyu sıcaklığı, rüzgâr hızı ve detaylı deniz durumu tahminlerini canlı olarak takip edin.">
+  
+  <!-- Google Fonts: Inter & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- LeafletJS (Map) CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Premium CSS Design System */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #030a16 0%, #07152b 50%, #0c203c 100%);
+      --accent-cyan: #00f5ff;
+      --accent-blue: #3b82f6;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --card-bg: rgba(10, 25, 47, 0.65);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-sans: 'Inter', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+      --wave-scale-y: 1;
+      --wave-dur-1: 8s;
+      --wave-dur-2: 12s;
+      --wave-dur-3: 16s;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.6;
+      padding-bottom: 2rem;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: rgba(3, 10, 22, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 1rem 2rem;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      font-size: 1.8rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .logo-text {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      font-weight: 600;
+      background: linear-gradient(to right, var(--text-main), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-tag {
+      font-size: 0.75rem;
+      background: rgba(0, 245, 255, 0.15);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+
+    /* Main Container Layout */
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    /* Floating Animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    /* Hero Search Area */
+    .hero-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      line-height: 1.2;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 1rem auto;
+    }
+
+    /* Controls Grid */
+    .selectors-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+      .selectors-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Native Select Styling */
+    .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .select-label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .native-select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      padding: 0.85rem 1.2rem;
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .native-select:hover {
+      border-color: rgba(0, 245, 255, 0.4);
+    }
+
+    .native-select:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.12);
+    }
+
+    .native-select option {
+      background: #09172c;
+      color: var(--text-main);
+      padding: 0.5rem;
+    }
+
+    /* Search input above native selects */
+    .select-search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-bottom: none;
+      padding: 0.6rem 1rem;
+      border-radius: 12px 12px 0 0;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.3s, background 0.3s;
+    }
+
+    .select-search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .select-search-input:focus {
+      background: rgba(0, 245, 255, 0.06);
+      border-color: var(--accent-cyan);
+    }
+
+    /* When search input is present, connect it to select below */
+    .select-group:has(.select-search-input) .native-select {
+      border-radius: 0 0 12px 12px;
+      border-top: none;
+    }
+
+    /* Hour Selector Bar */
+    .hour-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .hour-selector-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-right: 0.25rem;
+      white-space: nowrap;
+    }
+
+    .hour-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .hour-btn:hover {
+      background: rgba(0, 245, 255, 0.1);
+      border-color: rgba(0, 245, 255, 0.4);
+      color: var(--text-main);
+    }
+
+    .hour-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Landlocked warning banner */
+    .landlocked-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+      border: 1px dashed rgba(245, 158, 11, 0.4);
+      padding: 1.25rem 1.5rem;
+      border-radius: 16px;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    .landlocked-banner.show {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .landlocked-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--accent-orange);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .landlocked-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .suggestion-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .suggestion-btn:hover {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(3, 10, 22, 0.85);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(0, 245, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--accent-cyan);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 1.1rem;
+      color: var(--accent-cyan);
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    /* Weather & Marine Dashboard */
+    .dashboard {
+      display: none;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .dashboard.show {
+      display: grid;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Beach visual panel */
+    .beach-hero {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2.5rem;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.5s ease-in-out;
+    }
+
+    @media (min-width: 768px) {
+      .beach-hero {
+        min-height: 400px;
+      }
+    }
+
+    .beach-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to top, rgba(3, 10, 22, 0.95) 0%, rgba(3, 10, 22, 0.3) 60%, rgba(3, 10, 22, 0) 100%);
+      z-index: 1;
+    }
+
+    .beach-info {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .beach-location-meta {
+      font-size: 0.9rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .beach-name-title {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      line-height: 1.1;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--accent-red);
+      color: #ff6b6b;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 99px;
+      align-self: flex-start;
+      margin-top: 0.5rem;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background-color: var(--accent-red);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    /* Wave Simulation Card */
+    .wave-simulator-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .wave-simulator-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .wave-simulator-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .wave-status-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Shoreline Photo Wave Simulation */
+    .wave-simulation-box {
+      position: relative;
+      height: 220px;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #031026;
+      cursor: default;
+    }
+
+    /* The actual shoreline photo - full container size */
+    .shoreline-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      /* clip-path controls how much sea (top) vs sand (bottom) is visible */
+      /* sea-split var goes from 20% (calm) to 80% (dangerous) */
+      /* We show the photo as-is but shift the image up/down to reveal more sea or sand */
+      transform: translateY(var(--shoreline-shift, 20%));
+      transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      filter: var(--shoreline-filter, saturate(1.1) brightness(1.05));
+    }
+
+    /* Animated foam strip at the exact sea/sand boundary */
+    .foam-strip {
+      position: absolute;
+      left: 0;
+      right: 0;
+      /* foam-top var controls vertical position of foam line */
+      top: var(--foam-top, 50%);
+      height: 18px;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.85) 35%,
+        rgba(255,255,255,0.95) 50%,
+        rgba(255,255,255,0.85) 65%,
+        rgba(255,255,255,0) 100%
+      );
+      z-index: 4;
+      animation: foam-pulse var(--wave-dur-1, 8s) ease-in-out infinite;
+      transition: top 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      mix-blend-mode: screen;
+    }
+
+    @keyframes foam-pulse {
+      0%, 100% { opacity: 0.6; transform: scaleX(1); }
+      50% { opacity: 1; transform: scaleX(1.02); }
+    }
+
+    /* Dark gradient at top for overlay legibility */
+    .shoreline-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(3, 10, 22, 0.5) 0%,
+        rgba(3, 10, 22, 0.1) 40%,
+        rgba(3, 10, 22, 0) 60%,
+        rgba(3, 10, 22, 0.25) 100%
+      );
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Simulation metrics overlay inside wave box */
+    .wave-simulation-overlay {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .overlay-height {
+      background: rgba(3, 10, 22, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .overlay-height-val {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .overlay-height-lbl {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-top: -2px;
+    }
+
+    /* Wave classifications styles */
+    .wave-status-durgun {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--accent-emerald);
+      color: #34d399;
+    }
+    .wave-status-hafif {
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid var(--accent-blue);
+      color: #93c5fd;
+    }
+    .wave-status-dalgalı {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid var(--accent-orange);
+      color: #fcd34d;
+    }
+    .wave-status-cokdalgalı {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #f87171;
+      color: #fca5a5;
+    }
+    .wave-status-tehlikeli {
+      background: rgba(239, 68, 68, 0.35);
+      border: 1px solid var(--accent-red);
+      color: #ff8787;
+      animation: danger-glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes danger-glow {
+      from { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); }
+      to { box-shadow: 0 0 15px rgba(239, 68, 68, 0.6); }
+    }
+
+    /* Analysis text summary */
+    .analysis-summary-box {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      padding: 0.9rem 1.1rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 4px solid var(--accent-blue);
+      font-weight: 500;
+    }
+
+    /* Grid layout for cards */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    /* Metrics Grid */
+    .metrics-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (min-width: 480px) {
+      .metrics-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .metric-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-icon {
+      font-size: 1.2rem;
+    }
+
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.1;
+      margin-bottom: 0.2rem;
+    }
+
+    .metric-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Wind / Wave directions dynamic rotation */
+    .direction-indicator {
+      display: inline-block;
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    /* Consistency Dashboard Panel */
+    .consistency-card {
+      background: rgba(10, 25, 47, 0.55);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .consistency-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .consistency-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .consistency-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+    }
+
+    .consistency-badge.yuksek {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-emerald);
+      color: #34d399;
+    }
+    .consistency-badge.orta {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-orange);
+      color: #fbbf24;
+    }
+    .consistency-badge.dusuk {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--accent-red);
+      color: #f87171;
+    }
+
+    .model-comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .model-comparison-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding-bottom: 0.4rem;
+    }
+
+    .model-comparison-table td {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .model-comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .model-name {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .model-value {
+      font-family: monospace;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Chart & Map layout grid */
+    .chart-map-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 992px) {
+      .chart-map-grid {
+        grid-template-columns: 3fr 2fr;
+      }
+    }
+
+    .chart-card, .map-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .chart-container-inner {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .chart-container-inner {
+        height: 300px;
+      }
+    }
+
+    .map-container-inner {
+      height: 250px;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 5;
+    }
+
+    @media (min-width: 768px) {
+      .map-container-inner {
+        height: 300px;
+      }
+    }
+
+    .card-title-sm {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    /* 3-Day Forecast Section */
+    .forecast-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .forecast-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .forecast-card {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .forecast-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(0, 245, 255, 0.25);
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .forecast-date {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .forecast-day-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: -0.25rem;
+    }
+
+    .forecast-wave-icon {
+      font-size: 2.2rem;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .forecast-val-big {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .forecast-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+      width: 100%;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .forecast-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .forecast-meta-lbl {
+      text-transform: uppercase;
+      font-size: 0.6rem;
+      letter-spacing: 0.5px;
+    }
+
+    .forecast-meta-val {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Disclaimer Section */
+    .disclaimer-section {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .disclaimer-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: #ff6b6b;
+      font-weight: 700;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .disclaimer-body {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .disclaimer-body strong {
+      color: var(--text-main);
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 3rem auto 0 auto;
+      padding: 0 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 1.5rem;
+    }
+
+    footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Leaflet map popup custom styling */
+    .leaflet-popup-content-wrapper {
+      background: #09172c !important;
+      color: var(--text-main) !important;
+      border: 1px solid var(--card-border);
+      border-radius: 12px !important;
+    }
+    .leaflet-popup-tip {
+      background: #09172c !important;
+    }
+    .leaflet-container a.leaflet-popup-close-button {
+      color: var(--text-muted) !important;
+    }
+
+    /* Safety card styles */
+    .safety-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      backdrop-filter: blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .safety-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .safety-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .safety-badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .safety-badge.safe {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-emerald);
+      color: #34d399;
+    }
+    
+    .safety-badge.low {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid var(--accent-blue);
+      color: #93c5fd;
+    }
+
+    .safety-badge.medium {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-orange);
+      color: #fbbf24;
+    }
+
+    .safety-badge.high {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #f87171;
+      color: #fca5a5;
+    }
+
+    .safety-badge.critical {
+      background: rgba(239, 68, 68, 0.3);
+      border: 1px solid var(--accent-red);
+      color: #ff8787;
+      animation: danger-glow 1.5s ease-in-out infinite alternate;
+    }
+
+    /* Risk Bar container styling */
+    .risk-bar-container {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 0.6rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .risk-bar-track {
+      height: 14px;
+      background: linear-gradient(to right, 
+        #10b981 0%, 
+        #3b82f6 25%, 
+        #f59e0b 50%, 
+        #ef4444 75%, 
+        #8b5cf6 100%
+      );
+      border-radius: 8px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill-overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 100%;
+    }
+
+    .risk-bar-pointer {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 6px;
+      background: #ffffff;
+      box-shadow: 0 0 10px #ffffff, 0 0 4px rgba(0, 0, 0, 0.5);
+      border-radius: 3px;
+      transition: left 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      left: 0%;
+      z-index: 5;
+    }
+
+    .risk-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      padding: 0 0.2rem;
+    }
+
+    /* Safety Advice panel */
+    .safety-advice-box {
+      display: flex;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+      align-items: flex-start;
+      transition: all 0.3s ease;
+    }
+
+    .safety-advice-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .safety-advice-text strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+    }
+
+    .safety-advice-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">DENİZ VERİLERİ YÜKLENİYOR...</div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <div class="logo-container">
+        <span class="logo-icon">🌊</span>
+        <div>
+          <span class="logo-text">Severcan</span>
+          <span class="brand-tag">Hava &amp; Dalga Raporu</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main>
+
+    <!-- HERO SEARCH & LOCATION PANEL -->
+    <section class="hero-panel">
+      <h1 class="hero-title">Deniz & Dalga Durumu Raporu</h1>
+      <p class="hero-subtitle">
+        Dünya genelindeki deniz ve plajlara ait güncel dalga yüksekliği, deniz suyu sıcaklığı ve rüzgâr verilerini sorgulayın.
+      </p>
+
+      <div class="selectors-grid">
+        <!-- COUNTRY SELECT -->
+        <div class="select-group">
+          <label class="select-label" for="countrySelect">Ülke</label>
+          <input type="text" class="select-search-input" id="countrySearch" placeholder="🔍 Ülke ara..." oninput="filterSelect('countrySelect', this.value)">
+          <select class="native-select" id="countrySelect" size="1"></select>
+        </div>
+
+        <!-- CITY SELECT -->
+        <div class="select-group">
+          <label class="select-label" for="citySelect">Şehir</label>
+          <input type="text" class="select-search-input" id="citySearch" placeholder="🔍 Şehir ara..." oninput="filterSelect('citySelect', this.value)">
+          <select class="native-select" id="citySelect" size="1"></select>
+        </div>
+
+        <!-- BEACH SELECT -->
+        <div class="select-group">
+          <label class="select-label" for="beachSelect">Sahil / Plaj</label>
+          <input type="text" class="select-search-input" id="beachSearch" placeholder="🔍 Sahil ara..." oninput="filterSelect('beachSelect', this.value)">
+          <select class="native-select" id="beachSelect" size="1"></select>
+        </div>
+      </div>
+
+      <!-- Landlocked warning banner -->
+      <div class="landlocked-banner" id="landlockedBanner">
+        <div class="landlocked-header">
+          <span>⚠️</span>
+          <span>Bu Şehrin Denize Kıyısı Bulunmamaktadır</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Seçtiğiniz şehir iç bölgede yer almaktadır. En yakın sahillerden birini seçerek deniz durumunu inceleyebilirsiniz:
+        </p>
+        <div class="landlocked-suggestions" id="landlockedSuggestions">
+          <!-- Suggestion buttons will be injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD PANEL (HIDDEN BY DEFAULT, SHOWN WHEN BEACH SELECTED) -->
+    <div class="dashboard" id="dashboard">
+
+      <!-- BEACH HERO CONTAINER -->
+      <section class="beach-hero" id="beachHero">
+        <div class="beach-info">
+          <span class="beach-location-meta" id="beachLocationMeta">Antalya, Türkiye</span>
+          <h2 class="beach-name-title" id="beachNameTitle">Konyaaltı Plajı</h2>
+          <span class="live-badge">
+            <span class="live-dot"></span> Canlı Veri Raporu
+          </span>
+        </div>
+
+        <!-- Hour selector bar -->
+        <div class="hour-selector-bar" id="hourSelectorBar">
+          <span class="hour-selector-label">🕐 Saat:</span>
+        </div>
+      </section>
+
+      <!-- FIRST ROW: WAVE SIMULATOR & METRICS GRID -->
+      <div class="dashboard-grid">
+        
+        <!-- Left Side: Wave Simulation & Analysis + Safety Assessment Stack -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <!-- Wave Simulation & Analysis Card -->
+          <div class="wave-simulator-card">
+            <div class="wave-simulator-header">
+              <div class="wave-simulator-title">
+                <span>🌊</span>
+                <span>Deniz Durumu Simülasyonu</span>
+              </div>
+              <span class="wave-status-badge wave-status-hafif" id="waveStatusBadge">Hafif Dalgalı</span>
+            </div>
+
+            <!-- Shoreline Photo Wave Box -->
+            <div class="wave-simulation-box" id="shorelineBox">
+              <!-- Real shoreline photo: top=sea, bottom=sand -->
+              <img class="shoreline-photo" id="shorelinePhoto" src="shoreline.png" alt="Kıyı şeridi - deniz ve kum">
+
+              <!-- Foam/surf strip at the boundary -->
+              <div class="foam-strip" id="foamStrip"></div>
+
+              <!-- Semi-transparent overlay for legibility -->
+              <div class="shoreline-overlay"></div>
+
+              <!-- Metrics overlay on top -->
+              <div class="wave-simulation-overlay">
+                <div class="overlay-height">
+                  <div class="overlay-height-val" id="simHeightVal">45 cm</div>
+                  <div class="overlay-height-lbl">Dalga Yüksekliği</div>
+                </div>
+                <div class="overlay-height" style="text-align: right;">
+                  <div class="overlay-height-val" id="simPeriodVal">4.2 sn</div>
+                  <div class="overlay-height-lbl">Dalga Periyodu</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Text analysis description -->
+            <p class="analysis-summary-box" id="analysisSummary">
+              Sabah saatlerinde sakin bir deniz beklenirken, öğleden sonra rüzgarın hızlanmasıyla dalga boyu hafifçe yükselebilir.
+            </p>
+          </div>
+
+          <!-- Yüzme & Boğulma Riski Kartı -->
+          <div class="safety-card">
+            <div class="safety-header">
+              <span class="safety-title">⚠️ Yüzme Güvenliği & Boğulma Riski</span>
+              <span class="safety-badge safe" id="safetyBadge">Düşük Risk / Güvenli</span>
+            </div>
+            
+            <div class="risk-bar-container">
+              <div class="risk-bar-track">
+                <div class="risk-bar-fill-overlay" id="riskBarFill" style="width: 100%;"></div>
+                <div class="risk-bar-pointer" id="riskBarPointer" style="left: 0%;"></div>
+              </div>
+              <div class="risk-bar-labels">
+                <span>Çok Düşük</span>
+                <span>Hafif</span>
+                <span>Orta</span>
+                <span>Yüksek</span>
+                <span>Tehlikeli</span>
+              </div>
+            </div>
+
+            <div class="safety-advice-box">
+              <div class="safety-advice-icon" id="safetyAdviceIcon">🟢</div>
+              <div class="safety-advice-text">
+                <strong id="safetyAdviceTitle">Denize Girmek Güvenli</strong>
+                <p id="safetyAdviceDesc">Koşullar yüzmek için son derece elverişli. Sahilde ve denizde güvenle vakit geçirebilirsiniz.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Model consistency indicator -->
+        <div class="consistency-card">
+          <div class="consistency-header">
+            <span class="consistency-title">Model Uyumluluğu</span>
+            <span class="consistency-badge yuksek" id="consistencyBadge">YÜKSEK</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">
+            Hava tahmin kaynaklarımızın (GFS, ECMWF, ICON) rüzgâr ve hava tahminlerindeki uyum düzeyi hesaplanmıştır. Uyum seviyesi tahmin güvenilirliğini gösterir.
+          </p>
+
+          <table class="model-comparison-table">
+            <thead>
+              <tr>
+                <th>Kaynak Model</th>
+                <th>Rüzgâr Hızı</th>
+                <th>Sıcaklık</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name">ECMWF (Avrupa)</td>
+                <td class="model-value" id="valEcmwfWind">12 km/h</td>
+                <td class="model-value" id="valEcmwfTemp">29°C</td>
+              </tr>
+              <tr>
+                <td class="model-name">NOAA GFS (ABD)</td>
+                <td class="model-value" id="valGfsWind">14 km/h</td>
+                <td class="model-value" id="valGfsTemp">28°C</td>
+              </tr>
+              <tr>
+                <td class="model-name">DWD ICON (Almanya)</td>
+                <td class="model-value" id="valIconWind">13 km/h</td>
+                <td class="model-value" id="valIconTemp">29°C</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECOND ROW: 8-METRICS CONTAINER -->
+      <section class="metrics-container">
+        <!-- 1. Dalga Boyu (cm) -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Dalga Boyu</span>
+            <span class="metric-icon">📏</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mWaveHeight">45 cm</div>
+            <div class="metric-desc">Santimetre cinsinden</div>
+          </div>
+        </div>
+
+        <!-- 2. Dalga Periyodu -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Dalga Periyodu</span>
+            <span class="metric-icon">⏱️</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mWavePeriod">4.2 s</div>
+            <div class="metric-desc">Ardışık dalga süresi</div>
+          </div>
+        </div>
+
+        <!-- 3. Dalga Yönü -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Dalga Yönü</span>
+            <span class="metric-icon">🧭</span>
+          </div>
+          <div>
+            <div class="metric-value">
+              <span class="direction-indicator" id="mWaveDirArrow">↑</span>
+              <span id="mWaveDirVal">240° / Lodos</span>
+            </div>
+            <div class="metric-desc">Denizden geliş yönü</div>
+          </div>
+        </div>
+
+        <!-- 4. Deniz Suyu Sıcaklığı -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Deniz Suyu</span>
+            <span class="metric-icon">🌡️</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mSeaTemp">25.5 °C</div>
+            <div class="metric-desc">Yüzey suyu sıcaklığı</div>
+          </div>
+        </div>
+
+        <!-- 5. Hava Sıcaklığı -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Hava Sıcaklığı</span>
+            <span class="metric-icon">☀️</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mAirTemp">29.2 °C</div>
+            <div class="metric-desc">Modellerin ortalaması</div>
+          </div>
+        </div>
+
+        <!-- 6. Rüzgâr Hızı & Yönü -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Rüzgâr Hızı</span>
+            <span class="metric-icon">💨</span>
+          </div>
+          <div>
+            <div class="metric-value">
+              <span class="direction-indicator" id="mWindDirArrow">↗</span>
+              <span id="mWindSpeedVal">13 km/h</span>
+            </div>
+            <div class="metric-desc" id="mWindDesc">Yön: 180° (Güney)</div>
+          </div>
+        </div>
+
+        <!-- 7. Yağış İhtimali -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Yağış İhtimali</span>
+            <span class="metric-icon">💧</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mPrecipProb">%5</div>
+            <div class="metric-desc">Bugünkü ihtimal</div>
+          </div>
+        </div>
+
+        <!-- 8. UV İndeksi -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">UV İndeksi</span>
+            <span class="metric-icon">🕶️</span>
+          </div>
+          <div>
+            <div class="metric-value" id="mUvIndex">8 (Çok Yüksek)</div>
+            <div class="metric-desc">Güneş koruması önerilir</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THIRD ROW: CHART (24H PREDICTION) & LEAFLET MAP -->
+      <div class="chart-map-grid">
+        
+        <!-- Wave Chart -->
+        <div class="chart-card">
+          <div class="card-title-sm">
+            <span>📈</span>
+            <span>24 Saatlik Tahmin Grafiği</span>
+          </div>
+          <div class="chart-container-inner">
+            <canvas id="waveForecastChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Map Location -->
+        <div class="map-card">
+          <div class="card-title-sm">
+            <span>📍</span>
+            <span>Sahilin Harita Konumu</span>
+          </div>
+          <div class="map-container-inner" id="beachMap"></div>
+        </div>
+      </div>
+
+      <!-- FOURTH ROW: 3-DAY FORECAST -->
+      <section class="forecast-section">
+        <div class="card-title-sm">
+          <span>📅</span>
+          <span>3 Günlük Deniz ve Hava Tahmini</span>
+        </div>
+        <div class="forecast-grid" id="forecastGrid">
+          <!-- 3 Forecast Cards will be injected dynamically -->
+        </div>
+      </section>
+
+      <!-- DISCLAIMER BOX -->
+      <section class="disclaimer-section">
+        <div class="disclaimer-header">
+          <span>⚠️</span>
+          <span>Önemli Güvenlik Bilgilendirmesi & Feragatname</span>
+        </div>
+        <p class="disclaimer-body">
+          Bu platformda görüntülenen tüm veriler, <strong>Open-Meteo</strong> ve bağlı meteorolojik modeller (NOAA GFS, ECMWF IFS, DWD ICON, Copernicus) aracılığıyla sağlanan <strong>tahmini ve simüle edilmiş verilere dayanmaktadır</strong>.
+          Deniz şartları rüzgâr, dip yapısı, akıntılar ve anlık hava olayları nedeniyle çok hızlı şekilde değişkenlik gösterebilir. 
+          <br><br>
+          Bu sayfada yer alan hiçbir bilgi <strong>"yüzmek tamamen güvenlidir"</strong> veya <strong>"yüzmeye uygun değildir"</strong> şeklinde kesin bir güvenlik tavsiyesi <strong>içermemektedir</strong>. 
+          Sahildeki yerel <strong>cankurtaran uyarıları, sahil bayrakları, yasaklar ve resmi meteoroloji uyarıları</strong> her zaman birinci derecede önceliklidir ve takip edilmelidir. 
+          Lütfen can güvenliğinizi tehlikeye atacak durumlardan kaçınınız.
+        </p>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Severcan Weather App. Tüm Hakları Saklıdır.</p>
+    <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+      Veri Sağlayıcı: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo API</a> | Harita: <a href="https://openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a>
+    </p>
+  </footer>
+
+  <script>
+    // ----------------------------------------------------------------
+    // 1. LOCATION DATABASE
+    // ----------------------------------------------------------------
+    const locationDatabase = {
+      "Türkiye": {
+        "Antalya": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Konyaaltı Plajı", lat: 36.8772, lon: 30.6401, img: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Lara Plajı", lat: 36.8533, lon: 30.8033, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kaputaş Plajı", lat: 36.2286, lon: 29.4491, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kleopatra Plajı", lat: 36.5494, lon: 31.9954, img: "https://images.unsplash.com/photo-1623192080342-a169bdfcfcbf?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Olympos Plajı", lat: 36.3741, lon: 30.4721, img: "https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Muğla": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Ölüdeniz Plajı", lat: 36.5484, lon: 29.1174, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
+            { name: "İztuzu Plajı", lat: 36.7900, lon: 28.6186, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Bodrum Bitez Plajı", lat: 37.0267, lon: 27.3828, img: "https://images.unsplash.com/photo-1563911302283-d2bc1db0bd3d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kelebekler Vadisi", lat: 36.4951, lon: 29.1228, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "İzmir": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Çeşme Ilıca Plajı", lat: 38.3075, lon: 26.3533, img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Alaçatı Plajı", lat: 38.2612, lon: 26.3814, img: "https://images.unsplash.com/photo-1589979482837-e744b7d140db?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Urla Kum Denizi Plajı", lat: 38.3615, lon: 26.7865, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "İstanbul": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Kilyos Plajı", lat: 41.2514, lon: 29.0347, img: "https://images.unsplash.com/photo-1548685913-fe6578583bad?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Şile Ayazma Plajı", lat: 41.1803, lon: 29.6053, img: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Caddebostan Plajı", lat: 40.9719, lon: 29.0575, img: "https://images.unsplash.com/photo-1473116763269-25541579ffbe?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Balıkesir": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Ayvalık Sarımsaklı Plajı", lat: 39.2631, lon: 26.6806, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Altınoluk Plajı", lat: 39.5714, lon: 26.6853, img: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Çanakkale": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Bozcaada Ayazma Plajı", lat: 39.8106, lon: 26.0125, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Assos Kadırga Koyu", lat: 39.4828, lon: 26.3556, img: "https://images.unsplash.com/photo-1561571994-3c61c554181a?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Mersin": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Kızkalesi Plajı", lat: 36.4633, lon: 34.1481, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Yapraklı Koy", lat: 36.4022, lon: 34.0531, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Trabzon": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Yalıncak Aile Plajı", lat: 40.9639, lon: 39.8144, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Sürmene Çamburnu Plajı", lat: 40.9231, lon: 40.2033, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Aydın": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Kuşadası Kadınlar Denizi Plajı", lat: 37.8448, lon: 27.2612, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kuşadası Long Beach (Uzun Plaj)", lat: 37.8002, lon: 27.3094, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Pamucak Plajı", lat: 37.9033, lon: 27.2800, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Didim Altınkum Plajı", lat: 37.3712, lon: 27.2636, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Güzelçamlı Milli Park Plajı", lat: 37.7367, lon: 27.1783, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Davutlar Plajı", lat: 37.7583, lon: 27.2961, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        // --- Akdeniz Bölgesi ---
+        "Adana": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Karataş Plajı", lat: 36.5594, lon: 35.3778, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Yumurtalık Plajı", lat: 36.7583, lon: 35.7889, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Hatay": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Samandağ Plajı", lat: 36.0578, lon: 35.9806, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "İskenderun Plajı", lat: 36.5878, lon: 36.1675, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Arsuz Plajı", lat: 36.4244, lon: 35.8806, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        // --- Ege Bölgesi ---
+        "Edirne": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Enez Plajı", lat: 40.7233, lon: 26.0875, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Saros Körfezi Plajı", lat: 40.7500, lon: 26.2500, img: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        // --- Marmara Bölgesi ---
+        "Tekirdağ": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Şarköy Plajı", lat: 40.6100, lon: 27.1133, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Barbaros Plajı", lat: 40.9811, lon: 27.5122, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Marmara Ereğlisi Plajı", lat: 40.9681, lon: 27.9558, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Kocaeli": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Karamürsel Plajı", lat: 40.6947, lon: 29.6100, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Gölcük Plajı", lat: 40.7017, lon: 29.8267, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kandıra Plajı", lat: 41.0658, lon: 30.1547, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Yalova": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Çınarcık Plajı", lat: 40.6419, lon: 29.1253, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Esenköy Plajı", lat: 40.5981, lon: 29.2711, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Bursa": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Mudanya Plajı", lat: 40.3778, lon: 28.8858, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Gemlik Körfezi Plajı", lat: 40.4303, lon: 29.1561, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        // --- Karadeniz Bölgesi ---
+        "Düzce": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Akçakoca Plajı", lat: 41.0847, lon: 31.1269, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Akçakoca Merkez Plajı", lat: 41.0902, lon: 31.1111, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Zonguldak": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Amasra Plajı", lat: 41.7481, lon: 32.3850, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Zonguldak Kıyı Plajı", lat: 41.4544, lon: 31.7933, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Bartın": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Amasra Büyük Plaj", lat: 41.7489, lon: 32.3872, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
+            { name: "İnkumu Plajı", lat: 41.6978, lon: 32.2236, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Kastamonu": {
+          isLandlocked: false,
+          beaches: [
+            { name: "İnebolu Plajı", lat: 41.9803, lon: 33.7611, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Abana Plajı", lat: 41.9728, lon: 34.0122, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Sinop": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Sinop Merkez Plajı", lat: 42.0231, lon: 35.1522, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Hamsilos Koyu", lat: 42.0700, lon: 35.0900, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Samsun": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Altınkum Plajı", lat: 41.2833, lon: 36.3361, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Amisos Plajı", lat: 41.3006, lon: 36.3467, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Ordu": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Perşembe Plajı", lat: 40.9994, lon: 37.7744, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Yason Burnu Plajı", lat: 40.9667, lon: 37.8453, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Giresun": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Giresun Ada Plajı", lat: 40.9253, lon: 38.4069, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Tirebolu Plajı", lat: 41.0025, lon: 38.8203, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Rize": {
+          isLandlocked: false,
+          beaches: [
+            { name: "İyidere Plajı", lat: 41.0172, lon: 40.8736, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Çayeli Plajı", lat: 41.0883, lon: 40.7264, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Artvin": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Hopa Plajı", lat: 41.4117, lon: 41.4119, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Arhavi Plajı", lat: 41.3531, lon: 41.3022, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Sakarya": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Karasu Plajı", lat: 41.1192, lon: 30.6994, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kızılot Mavi Bayrak Plajı", lat: 41.0811, lon: 30.7642, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Kırklareli": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Kıyıköy Plajı", lat: 41.6219, lon: 27.9703, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Limanköy Plajı", lat: 41.6000, lon: 27.9500, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Ankara": {
+          isLandlocked: true,
+          nearestBeaches: [
+            { name: "Şile Ayazma Plajı", city: "İstanbul", country: "Türkiye" },
+            { name: "Kilyos Plajı", city: "İstanbul", country: "Türkiye" },
+            { name: "Konyaaltı Plajı", city: "Antalya", country: "Türkiye" }
+          ]
+        },
+        "Konya": {
+          isLandlocked: true,
+          nearestBeaches: [
+            { name: "Konyaaltı Plajı", city: "Antalya", country: "Türkiye" },
+            { name: "Lara Plajı", city: "Antalya", country: "Türkiye" },
+            { name: "Kızkalesi Plajı", city: "Mersin", country: "Türkiye" }
+          ]
+        },
+        "Eskişehir": {
+          isLandlocked: true,
+          nearestBeaches: [
+            { name: "Kuşadası Kadınlar Denizi Plajı", city: "Aydın", country: "Türkiye" },
+            { name: "Çeşme Ilıca Plajı", city: "İzmir", country: "Türkiye" },
+            { name: "Ayvalık Sarımsaklı Plajı", city: "Balıkesir", country: "Türkiye" }
+          ]
+        }
+      },
+      "Yunanistan": {
+        "Atina": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Vouliagmeni Beach", lat: 37.8083, lon: 23.7742, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Alimos Beach", lat: 37.9103, lon: 23.7086, img: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Girit": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Elafonisi Beach", lat: 35.2712, lon: 23.5414, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Balos Lagoon", lat: 35.5794, lon: 23.5936, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Mikonos": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Platis Gialos", lat: 37.4147, lon: 25.3475, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        }
+      },
+      "İtalya": {
+        "Roma": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Ostia Beach", lat: 41.7303, lon: 12.2783, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Napoli": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Positano Beach", lat: 40.6278, lon: 14.4856, img: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Sicilya": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Mondello Beach", lat: 38.2014, lon: 13.3283, img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        }
+      },
+      "İspanya": {
+        "Barselona": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Barceloneta Beach", lat: 41.3784, lon: 2.1925, img: "https://images.unsplash.com/photo-1561571994-3c61c554181a?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Balear Adaları": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Playa de Muro", lat: 39.8089, lon: 3.1233, img: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Playa d'en Bossa", lat: 38.8878, lon: 1.4056, img: "https://images.unsplash.com/photo-1548685913-fe6578583bad?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        }
+      },
+      "ABD": {
+        "Florida": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Miami South Beach", lat: 25.7826, lon: -80.1301, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Kaliforniya": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Santa Monica Beach", lat: 34.0116, lon: -118.5000, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
+            { name: "La Jolla Cove", lat: 32.8497, lon: -117.2753, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        }
+      },
+      "Tayland": {
+        "Phuket": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Patong Beach", lat: 7.8967, lon: 98.2953, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        },
+        "Koh Samui": {
+          isLandlocked: false,
+          beaches: [
+            { name: "Chaweng Beach", lat: 9.5311, lon: 100.0617, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+          ]
+        }
+      }
+    };
+
+    // ----------------------------------------------------------------
+    // 2. STATE MANAGEMENT
+    // ----------------------------------------------------------------
+    let selectedCountry = "Türkiye";
+    let selectedCity = "";
+    let selectedBeach = null;
+    let map = null;
+    let mapMarker = null;
+    let forecastChart = null;
+    let cachedMarine = null;
+    let cachedForecast = null;
+    let selectedHour = null; // will be set to nearest 3h slot on load
+
+    // ----------------------------------------------------------------
+    // 3. INITIALIZATION & SETUP
+    // ----------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeDropdownData();
+      
+      // Wire up native selects
+      document.getElementById('countrySelect').addEventListener('change', (e) => {
+        setCountry(e.target.value);
+      });
+      document.getElementById('citySelect').addEventListener('change', (e) => {
+        setCity(e.target.value);
+      });
+      document.getElementById('beachSelect').addEventListener('change', (e) => {
+        const cityObj = locationDatabase[selectedCountry][selectedCity];
+        const beach = cityObj.beaches.find(b => b.name === e.target.value);
+        if (beach) setBeach(beach);
+      });
+
+      // Select Turkey as default, Aydın Davutlar Plajı
+      setCountry("Türkiye", "Aydın", "Davutlar Plajı");
+    });
+
+    // ----------------------------------------------------------------
+    // 4. DROPDOWN POPULATION (Native Select)
+    // ----------------------------------------------------------------
+    function initializeDropdownData() {
+      const countrySelect = document.getElementById('countrySelect');
+      countrySelect.innerHTML = '';
+      Object.keys(locationDatabase).forEach(cName => {
+        const opt = document.createElement('option');
+        opt.value = cName;
+        opt.textContent = cName;
+        countrySelect.appendChild(opt);
+      });
+    }
+
+    // Live search filter for native selects
+    function filterSelect(selectId, query) {
+      const select = document.getElementById(selectId);
+      const q = query.trim().toLowerCase();
+      let firstMatch = null;
+
+      Array.from(select.options).forEach(opt => {
+        const matches = opt.textContent.toLowerCase().includes(q);
+        // Hide/show via style: browsers ignore hidden options on open
+        opt.style.display = matches ? '' : 'none';
+        if (matches && !firstMatch) firstMatch = opt;
+      });
+
+      // Auto-select the first match if there's a query
+      if (q && firstMatch) {
+        select.value = firstMatch.value;
+      }
+    }
+
+    function setCountry(cName, cityToSelect = null, beachToSelect = null) {
+      selectedCountry = cName;
+      document.getElementById('countrySelect').value = cName;
+
+      const cities = Object.keys(locationDatabase[cName]);
+      const citySelect = document.getElementById('citySelect');
+      citySelect.innerHTML = '';
+      cities.forEach(cityName => {
+        const opt = document.createElement('option');
+        opt.value = cityName;
+        opt.textContent = cityName;
+        citySelect.appendChild(opt);
+      });
+
+      const targetCity = (cityToSelect && cities.includes(cityToSelect)) ? cityToSelect : cities[0];
+      setCity(targetCity, beachToSelect);
+    }
+
+    function setCity(cityName, beachToSelect = null) {
+      selectedCity = cityName;
+      document.getElementById('citySelect').value = cityName;
+
+      const cityObj = locationDatabase[selectedCountry][cityName];
+
+      if (cityObj.isLandlocked) {
+        // Handle Landlocked City
+        const beachSelect = document.getElementById('beachSelect');
+        beachSelect.innerHTML = '<option>Kıyı Bulunmuyor</option>';
+        beachSelect.disabled = true;
+
+        // Show banner
+        const banner = document.getElementById('landlockedBanner');
+        banner.classList.add('show');
+
+        const suggestionsBox = document.getElementById('landlockedSuggestions');
+        suggestionsBox.innerHTML = '';
+
+        cityObj.nearestBeaches.forEach(s => {
+          const btn = document.createElement('button');
+          btn.className = 'suggestion-btn';
+          btn.innerText = `${s.name} (${s.city})`;
+          btn.addEventListener('click', () => {
+            setCountry(s.country, s.city, s.name);
+          });
+          suggestionsBox.appendChild(btn);
+        });
+
+        document.getElementById('dashboard').classList.remove('show');
+      } else {
+        // Coastal City - populate beach select
+        const beachSelect = document.getElementById('beachSelect');
+        beachSelect.disabled = false;
+        beachSelect.innerHTML = '';
+        cityObj.beaches.forEach(beach => {
+          const opt = document.createElement('option');
+          opt.value = beach.name;
+          opt.textContent = beach.name;
+          beachSelect.appendChild(opt);
+        });
+
+        // Hide banner
+        document.getElementById('landlockedBanner').classList.remove('show');
+
+        // Select specified beach or first beach automatically
+        const foundBeach = beachToSelect ? cityObj.beaches.find(b => b.name === beachToSelect) : null;
+        setBeach(foundBeach || cityObj.beaches[0]);
+      }
+    }
+
+    function setBeach(beachObj) {
+      selectedBeach = beachObj;
+      document.getElementById('beachSelect').value = beachObj.name;
+      loadWeatherData(beachObj);
+    }
+
+    // ----------------------------------------------------------------
+    // 5. HOUR SELECTOR
+    // ----------------------------------------------------------------
+    const HOUR_SLOTS = [0, 3, 6, 9, 12, 15, 18, 21];
+
+    function buildHourSelector(marine, forecast) {
+      const bar = document.getElementById('hourSelectorBar');
+      // Keep label, remove old buttons
+      bar.innerHTML = '<span class="hour-selector-label">🕐 Saat:</span>';
+
+      // Find current hour to pick nearest slot
+      const now = new Date();
+      const nowHour = now.getHours();
+      const nearestSlot = HOUR_SLOTS.reduce((prev, curr) =>
+        Math.abs(curr - nowHour) < Math.abs(prev - nowHour) ? curr : prev
+      );
+      if (selectedHour === null) selectedHour = nearestSlot;
+
+      // Build one button per slot using today's date as default
+      HOUR_SLOTS.forEach(h => {
+        const btn = document.createElement('button');
+        btn.className = 'hour-btn' + (h === selectedHour ? ' active' : '');
+        btn.textContent = `${String(h).padStart(2, '0')}:00`;
+        btn.dataset.hour = h;
+        btn.addEventListener('click', () => {
+          selectedHour = h;
+          document.querySelectorAll('.hour-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // Re-render dashboard with selected hour
+          if (cachedMarine && cachedForecast) {
+            updateDashboardUI(cachedMarine, cachedForecast);
+          }
+        });
+        bar.appendChild(btn);
+      });
+    }
+
+    // ----------------------------------------------------------------
+    // 6. API DATA INTEGRATION (FETCH & CALCULATION)
+    // ----------------------------------------------------------------
+    async function loadWeatherData(beach) {
+      const loading = document.getElementById('loadingOverlay');
+      loading.style.display = 'flex';
+      selectedHour = null; // reset hour on new beach load
+
+      try {
+        const lat = beach.lat;
+        const lon = beach.lon;
+
+        // Fetch Marine API
+        const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&timezone=auto`;
+        const marineRes = await fetch(marineUrl);
+        const marineData = await marineRes.json();
+
+        // Fetch Forecast API with multiple models (gfs_seamless, icon_seamless, ecmwf_ifs04)
+        const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,uv_index,wind_speed_10m,wind_direction_10m&models=gfs_seamless,icon_seamless,ecmwf_ifs04&timezone=auto`;
+        const forecastRes = await fetch(forecastUrl);
+        const forecastData = await forecastRes.json();
+
+        // Cache for hour-selector re-renders
+        cachedMarine = marineData;
+        cachedForecast = forecastData;
+
+        // Build hour selector (sets selectedHour to nearest slot)
+        buildHourSelector(marineData, forecastData);
+
+        // Update hero info
+        const hero = document.getElementById('beachHero');
+        hero.style.backgroundImage = `url('${beach.img || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200"}')`;
+        document.getElementById('beachLocationMeta').innerText = `${selectedCity}, ${selectedCountry}`;
+        document.getElementById('beachNameTitle').innerText = beach.name;
+
+        // Parse and calculate values
+        updateDashboardUI(marineData, forecastData);
+        
+        // Show Dashboard
+        document.getElementById('dashboard').classList.add('show');
+      } catch (err) {
+        console.error("Veri yüklenirken hata oluştu:", err);
+        alert("Deniz tahmin verileri yüklenirken bir ağ hatası oluştu. Lütfen tekrar deneyiniz.");
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    // Convert Degrees to Compass Card Direction (Turkish)
+    function getWindDirectionTR(deg) {
+      if (deg === null || deg === undefined) return "-";
+      const val = Math.floor((deg / 22.5) + 0.5);
+      const arr = [
+        "Kuzey (Yıldız)", "Kuzey-Kuzeydoğu", "Kuzeydoğu (Poyraz)", "Doğu-Kuzeydoğu",
+        "Doğu (Gün Doğusu)", "Doğu-Güneydoğu", "Güneydoğu (Keşişleme)", "Güney-Güneydoğu",
+        "Güney (Kıble)", "Güney-Güneybatı", "Güneybatı (Lodos)", "Batı-Güneybatı",
+        "Batı (Gün Batısı)", "Batı-Kuzeybatı", "Kuzeybatı (Karayel)", "Kuzey-Kuzeybatı"
+      ];
+      return arr[(val % 16)];
+    }
+
+    function updateDashboardUI(marine, forecast) {
+      // Extract current hour index based on selectedHour slot
+      // Open-Meteo returns 168 hours (7 days) starting from today 00:00
+      // hIdx: today's selectedHour index = selectedHour (since 1 index = 1 hour)
+      const hIdx = selectedHour !== null ? selectedHour : new Date().getHours();
+
+      // 2. Extract Marine Parameters
+      const rawHeight = marine.hourly.wave_height[hIdx] || 0; // in meters
+      const waveHeightCm = Math.round(rawHeight * 100); // convert to cm
+      const wavePeriod = parseFloat((marine.hourly.wave_period[hIdx] || 0).toFixed(1));
+      const waveDirection = Math.round(marine.hourly.wave_direction[hIdx] || 0);
+      const seaTemp = parseFloat((marine.hourly.sea_surface_temperature[hIdx] || 0).toFixed(1));
+
+      // Helper function to calculate average of non-null/non-undefined values
+      function getAverage(vals) {
+        const valid = vals.filter(v => v !== null && v !== undefined && !isNaN(v));
+        if (valid.length === 0) return 0;
+        return parseFloat((valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(1));
+      }
+
+      // Helper function to calculate standard deviation of non-null/non-undefined values
+      function getStdDev(vals) {
+        const valid = vals.filter(v => v !== null && v !== undefined && !isNaN(v));
+        if (valid.length <= 1) return 0;
+        const mean = valid.reduce((a, b) => a + b, 0) / valid.length;
+        const variance = valid.reduce((acc, val) => acc + (val - mean) ** 2, 0) / valid.length;
+        return Math.sqrt(variance);
+      }
+
+      // Helper function to calculate average wind direction safely using vector components
+      function getAverageWindDirection(dirs) {
+        let totalSin = 0;
+        let totalCos = 0;
+        let count = 0;
+        dirs.forEach(d => {
+          if (d !== null && d !== undefined && !isNaN(d)) {
+            const rad = d * Math.PI / 180;
+            totalSin += Math.sin(rad);
+            totalCos += Math.cos(rad);
+            count++;
+          }
+        });
+        if (count === 0) return 0;
+        let avgDeg = Math.round(Math.atan2(totalSin, totalCos) * 180 / Math.PI);
+        if (avgDeg < 0) avgDeg += 360;
+        return avgDeg;
+      }
+
+      // 3. Multi-Model Processing (ECMWF, GFS, ICON)
+      // Extract model values safely for this hour
+      const ecmwfWind = (forecast.hourly.wind_speed_10m_ecmwf_ifs04 || [])[hIdx];
+      const gfsWind = (forecast.hourly.wind_speed_10m_gfs_seamless || [])[hIdx];
+      const iconWind = (forecast.hourly.wind_speed_10m_icon_seamless || [])[hIdx];
+
+      const ecmwfTemp = (forecast.hourly.temperature_2m_ecmwf_ifs04 || [])[hIdx];
+      const gfsTemp = (forecast.hourly.temperature_2m_gfs_seamless || [])[hIdx];
+      const iconTemp = (forecast.hourly.temperature_2m_icon_seamless || [])[hIdx];
+
+      // Update comparison table values
+      document.getElementById('valEcmwfWind').innerText = ecmwfWind !== null && ecmwfWind !== undefined ? `${Math.round(ecmwfWind)} km/h` : '-';
+      document.getElementById('valEcmwfTemp').innerText = ecmwfTemp !== null && ecmwfTemp !== undefined ? `${Math.round(ecmwfTemp)}°C` : '-';
+      document.getElementById('valGfsWind').innerText = gfsWind !== null && gfsWind !== undefined ? `${Math.round(gfsWind)} km/h` : '-';
+      document.getElementById('valGfsTemp').innerText = gfsTemp !== null && gfsTemp !== undefined ? `${Math.round(gfsTemp)}°C` : '-';
+      document.getElementById('valIconWind').innerText = iconWind !== null && iconWind !== undefined ? `${Math.round(iconWind)} km/h` : '-';
+      document.getElementById('valIconTemp').innerText = iconTemp !== null && iconTemp !== undefined ? `${Math.round(iconTemp)}°C` : '-';
+
+      // Calculate averages/medians
+      const avgAirTemp = getAverage([ecmwfTemp, gfsTemp, iconTemp]);
+      const avgWindSpeed = getAverage([ecmwfWind, gfsWind, iconWind]);
+
+      // Calculate standard deviation of wind speeds to evaluate consistency
+      const stdDevWind = getStdDev([ecmwfWind, gfsWind, iconWind]);
+
+      let consistency = "Yüksek";
+      let consistencyClass = "yuksek";
+      if (stdDevWind > 5) {
+        consistency = "Düşük";
+        consistencyClass = "dusuk";
+      } else if (stdDevWind > 2) {
+        consistency = "Orta";
+        consistencyClass = "orta";
+      }
+
+      const cBadge = document.getElementById('consistencyBadge');
+      cBadge.innerText = consistency;
+      cBadge.className = `consistency-badge ${consistencyClass}`;
+
+      // Extract general forecast variables (rain, UV)
+      const rawUv = (forecast.hourly.uv_index_gfs_seamless || [])[hIdx] || 0;
+      const rainProb = (forecast.hourly.precipitation_probability_gfs_seamless || [])[hIdx] || 0;
+
+      // Classify UV index
+      let uvLabel = "Düşük";
+      if (rawUv >= 11) uvLabel = "Sıradışı";
+      else if (rawUv >= 8) uvLabel = "Çok Yüksek";
+      else if (rawUv >= 6) uvLabel = "Yüksek";
+      else if (rawUv >= 3) uvLabel = "Orta";
+
+      // 4. Sea State Classification
+      let waveClass = "Durgun";
+      let waveBadgeClass = "wave-status-durgun";
+      let scaleY = 0.3; // for animation
+      let durationFactor = 2; // slower animations for calm seas
+
+      if (waveHeightCm > 300) {
+        waveClass = "Tehlikeli (Çok Sert)";
+        waveBadgeClass = "wave-status-tehlikeli";
+        scaleY = 2.5;
+        durationFactor = 0.4; // fast waves
+      } else if (waveHeightCm > 200) {
+        waveClass = "Çok Dalgalı";
+        waveBadgeClass = "wave-status-cokdalgalı";
+        scaleY = 1.9;
+        durationFactor = 0.6;
+      } else if (waveHeightCm > 100) {
+        waveClass = "Dalgalı";
+        waveBadgeClass = "wave-status-dalgalı";
+        scaleY = 1.3;
+        durationFactor = 0.95;
+      } else if (waveHeightCm > 30) {
+        waveClass = "Hafif Dalgalı";
+        waveBadgeClass = "wave-status-hafif";
+        scaleY = 0.8;
+        durationFactor = 1.3;
+      }
+
+      // Update Wave Badge & Sim Overlay Text
+      const wBadge = document.getElementById('waveStatusBadge');
+      wBadge.innerText = waveClass;
+      wBadge.className = `wave-status-badge ${waveBadgeClass}`;
+
+      document.getElementById('simHeightVal').innerText = `${waveHeightCm} cm`;
+      document.getElementById('simPeriodVal').innerText = `${wavePeriod} sn`;
+
+      // Update CSS Variables to control the shoreline photo shift
+      // shoreline-shift: how far the image is pushed down (positive = more sand, negative = more sea)
+      // Range: waveHeightCm 0→500cm  maps to shift 30%→-30% (positive=sand dominant, neg=sea dominant)
+      // clamp: max sea (most negative) at -30%, min (calm) at 30%
+      const maxCm = 500;
+      const clampedCm = Math.min(waveHeightCm, maxCm);
+      // shift goes from +30% (calm, lots of sand) to -30% (dangerous, lots of sea)
+      const shorelineShift = 30 - (clampedCm / maxCm) * 60;
+      // foam-top: position of the white foam line in the box (50% center when neutral)
+      // Higher waves → foam moves up (smaller %)
+      const foamTop = 50 - (clampedCm / maxCm) * 30;
+
+      // Color filter: stormy seas get a cooler, less saturated look
+      let shorelineFilter = 'saturate(1.2) brightness(1.1)';
+      if (waveHeightCm > 300) shorelineFilter = 'saturate(0.7) brightness(0.85) hue-rotate(10deg)';
+      else if (waveHeightCm > 200) shorelineFilter = 'saturate(0.9) brightness(0.95)';
+      else if (waveHeightCm > 100) shorelineFilter = 'saturate(1.05) brightness(1.0)';
+
+      const root = document.documentElement;
+      root.style.setProperty('--shoreline-shift', `${shorelineShift.toFixed(1)}%`);
+      root.style.setProperty('--foam-top', `${foamTop.toFixed(1)}%`);
+      root.style.setProperty('--shoreline-filter', shorelineFilter);
+      root.style.setProperty('--wave-dur-1', `${6 * durationFactor}s`);
+
+      // Update Metrics Cards
+      document.getElementById('mWaveHeight').innerText = `${waveHeightCm} cm`;
+      document.getElementById('mWavePeriod').innerText = `${wavePeriod} s`;
+      
+      // Wave Direction Arrow
+      const arrowWave = document.getElementById('mWaveDirArrow');
+      // Adding 180 degrees so arrow points in the direction the waves are heading
+      arrowWave.style.transform = `rotate(${waveDirection + 180}deg)`;
+      document.getElementById('mWaveDirVal').innerText = `${waveDirection}° / ${getWindDirectionTR(waveDirection)}`;
+
+      // Sea Temp
+      document.getElementById('mSeaTemp').innerText = `${seaTemp} °C`;
+      // Air Temp
+      document.getElementById('mAirTemp').innerText = `${avgAirTemp} °C`;
+      
+      // Wind speed & direction
+      const gfsWDVal = (forecast.hourly.wind_direction_10m_gfs_seamless || [])[hIdx];
+      const iconWDVal = (forecast.hourly.wind_direction_10m_icon_seamless || [])[hIdx];
+      const ecmwfWDVal = (forecast.hourly.wind_direction_10m_ecmwf_ifs04 || [])[hIdx];
+      const avgWindDirDeg = getAverageWindDirection([gfsWDVal, iconWDVal, ecmwfWDVal]);
+
+      const arrowWind = document.getElementById('mWindDirArrow');
+      arrowWind.style.transform = `rotate(${avgWindDirDeg + 180}deg)`;
+      document.getElementById('mWindSpeedVal').innerText = `${Math.round(avgWindSpeed)} km/h`;
+      document.getElementById('mWindDesc').innerText = `Yön: ${avgWindDirDeg}° (${getWindDirectionTR(avgWindDirDeg)})`;
+
+      // Rain Probability
+      document.getElementById('mPrecipProb').innerText = `%${rainProb}`;
+      // UV index
+      document.getElementById('mUvIndex').innerText = `${Math.round(rawUv)} (${uvLabel})`;
+
+      // 5. Generate Short Dynamic Summary Description
+      // We read the first 24 hours wave forecasts (index 0 to 23)
+      const dailyHeights = marine.hourly.wave_height.slice(0, 24);
+      
+      const morningH = dailyHeights.slice(6, 12); // 06:00 - 12:00
+      const afternoonH = dailyHeights.slice(12, 18); // 12:00 - 18:00
+      const eveningH = dailyHeights.slice(18, 24); // 18:00 - 24:00
+
+      const avgMorning = morningH.reduce((a, b) => a + b, 0) / morningH.length * 100; // in cm
+      const avgAfternoon = afternoonH.reduce((a, b) => a + b, 0) / afternoonH.length * 100;
+      const avgEvening = eveningH.reduce((a, b) => a + b, 0) / eveningH.length * 100;
+
+      let summaryText = "";
+      const diffAfternoonMorning = avgAfternoon - avgMorning;
+      const maxDiff = Math.max(avgMorning, avgAfternoon, avgEvening) - Math.min(avgMorning, avgAfternoon, avgEvening);
+
+      if (maxDiff < 15) {
+        if (waveHeightCm < 30) {
+          summaryText = "Gün boyu son derece sakin, çarşaf gibi düz bir deniz bekleniyor. Dinlenmek için mükemmel.";
+        } else if (waveHeightCm <= 100) {
+          summaryText = "Gün boyunca sabit ve hafif dalgalı bir deniz hakim olacaktır. Koşullar genel olarak dengeli.";
+        } else if (waveHeightCm <= 200) {
+          summaryText = "Gün boyunca sürekli dalgalı bir deniz yapısı bekleniyor. Kıyı kesimlerinde dalga boyu koruncak.";
+        } else {
+          summaryText = "Gün boyunca sürekli yüksek dalgalar ve sert hava koşulları etkili olacaktır. Kıyı şeridinde tedbirli olunmalıdır.";
+        }
+      } else if (diffAfternoonMorning > 15 && avgEvening > avgAfternoon) {
+        summaryText = `Sabah saatlerinde daha sakin (${Math.round(avgMorning)} cm) olan deniz, öğleden sonra dalgalanacak ve akşam saatlerinde rüzgârın da etkisiyle dalga boyu ${Math.round(avgEvening)} cm seviyelerine ulaşacaktır.`;
+      } else if (diffAfternoonMorning > 15 && avgEvening <= avgAfternoon) {
+        summaryText = `Sabah saatleri sakin geçecek, öğleden sonra rüzgârla birlikte dalgalar geçici olarak artacak (${Math.round(avgAfternoon)} cm), akşam saatlerinde ise deniz yeniden hafifçe sakinleşecektir.`;
+      } else if (avgMorning - avgAfternoon > 15 && avgAfternoon > avgEvening) {
+        summaryText = `Güne dalgalı başlayan deniz (${Math.round(avgMorning)} cm), öğleden sonra ve akşam saatlerine doğru rüzgârın kesilmesiyle birlikte kademeli olarak sakinleşecektir.`;
+      } else {
+        summaryText = `Gün içinde dalga seviyesi ${Math.round(Math.min(avgMorning, avgAfternoon, avgEvening))} cm ile ${Math.round(Math.max(avgMorning, avgAfternoon, avgEvening))} cm arasında hafif dalgalanmalar gösterecektir.`;
+      }
+      
+      document.getElementById('analysisSummary').innerText = summaryText;
+
+      // 5.5 Calculate Swimming / Drowning Risk
+      let riskScore = 0;
+      
+      // Wave height impact (up to 70 points)
+      if (waveHeightCm < 30) {
+        riskScore += waveHeightCm * 0.3; // 0 to 9
+      } else if (waveHeightCm < 100) {
+        riskScore += 9 + (waveHeightCm - 30) * 0.45; // 9 to 40.5
+      } else if (waveHeightCm < 200) {
+        riskScore += 41 + (waveHeightCm - 100) * 0.25; // 41 to 66
+      } else {
+        riskScore += 66 + (waveHeightCm - 200) * 0.08; // 66 to 90
+      }
+
+      // Wind speed impact (up to 15 points)
+      if (avgWindSpeed > 35) {
+        riskScore += 15;
+      } else if (avgWindSpeed > 20) {
+        riskScore += 8;
+      } else if (avgWindSpeed > 10) {
+        riskScore += 3;
+      }
+
+      // Wave period & swell risk (up to 10 points)
+      // Long period swells with significant waves are highly prone to dangerous rip currents (çeken akıntı)
+      if (wavePeriod >= 9 && waveHeightCm >= 60) {
+        riskScore += 12;
+      } else if (wavePeriod < 4 && waveHeightCm >= 80) {
+        riskScore += 6; // choppy, chaotic waves
+      }
+
+      // Rain / storm risk
+      if (rainProb > 75) {
+        riskScore += 5;
+      }
+
+      // Clamp riskScore 0-100
+      riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
+
+      // Classify Risk & Set UI
+      let riskLabel = "";
+      let riskClass = "";
+      let adviceIcon = "";
+      let adviceTitle = "";
+      let adviceDesc = "";
+
+      if (riskScore <= 25) {
+        riskLabel = `${riskScore}% - Çok Düşük Risk / Güvenli`;
+        riskClass = "safe";
+        adviceIcon = "🟢";
+        adviceTitle = "Denize Girmek Son Derece Güvenli & Sahile Gidilebilir";
+        adviceDesc = "Deniz son derece sakin ve güvenli. Her seviyeden yüzücü ve çocuklar için yüzmeye son derece uygundur. Sahile gitmek ve yüzmek için harika bir gün!";
+      } else if (riskScore <= 50) {
+        riskLabel = `${riskScore}% - Hafif Risk`;
+        riskClass = "low";
+        adviceIcon = "🔵";
+        adviceTitle = "Yüzülebilir / Tedbirli Olunması Önerilir";
+        adviceDesc = "Denizde hafif dalgalar var. Kendine güvenen yüzücüler için uygundur; ancak çocuklar ve deneyimsiz yüzücüler için gözetim ve dikkat şarttır. Sahile gitmekte hiçbir sakınca yoktur.";
+      } else if (riskScore <= 70) {
+        riskLabel = `${riskScore}% - Orta Derece Risk`;
+        riskClass = "medium";
+        adviceIcon = "🟡";
+        adviceTitle = "Dikkatli Olun / Denize Girilmesi Pek Önerilmez";
+        adviceDesc = "Dalga seviyesi ve rüzgâr hızı yükselmiştir. Sinsi çeken akıntılar (rip) oluşabilir. İyi yüzme bilseniz dahi açılmamanız ve kıyıda kalmanız, çocukları ise suya sokmamanız tavsiye edilir.";
+      } else if (riskScore <= 85) {
+        riskLabel = `${riskScore}% - Yüksek Risk`;
+        riskClass = "high";
+        adviceIcon = "🟠";
+        adviceTitle = "Tehlikeli! Denize Girmeyin, Sahilde Kalın";
+        adviceDesc = "Sert dalga kırılmaları ve tehlikeli çeken akıntılar bulunmaktadır. Denize girmek can güvenliğiniz için kesinlikle önerilmez. Sahile manzara izlemek veya yürümek için gidebilirsiniz ancak suya girmeyiniz.";
+      } else {
+        riskLabel = `${riskScore}% - Hayati Tehlike`;
+        riskClass = "critical";
+        adviceIcon = "🔴";
+        adviceTitle = "Hayati Tehlike! Sahile Gitmeyin";
+        adviceDesc = "Aşırı fırtınalı deniz koşulları, dev dalgalar ve öldürücü çeken akıntılar aktiftir. Boğulma riski en üst düzeydedir. Denize girmek kesinlikle yasaktır, ayrıca dalga çarpmaları riski nedeniyle sahilde/kıyıda durulmamalıdır.";
+      }
+
+      document.getElementById('safetyBadge').innerText = riskLabel;
+      document.getElementById('safetyBadge').className = `safety-badge ${riskClass}`;
+      document.getElementById('riskBarFill').style.width = `${100 - riskScore}%`;
+      document.getElementById('riskBarPointer').style.left = `${riskScore}%`;
+      document.getElementById('safetyAdviceIcon').innerText = adviceIcon;
+      document.getElementById('safetyAdviceTitle').innerText = adviceTitle;
+      document.getElementById('safetyAdviceDesc').innerText = adviceDesc;
+
+      // 6. Draw Chart.js Line Chart
+      drawChart(marine);
+
+      // 7. Update Leaflet Map coordinates
+      updateMap(selectedBeach);
+
+      // 8. Draw 3-Day Forecast
+      drawForecast(marine, forecast);
+    }
+
+    // ----------------------------------------------------------------
+    // 7. CHART DRAWING LOGIC (CHART.JS)
+    // ----------------------------------------------------------------
+    function drawChart(marine) {
+      const times = [];
+      const dataHeights = [];
+      const dataPeriods = [];
+
+      // Extract next 24 hourly data points starting from the current hour
+      const now = new Date();
+      const currentHour = now.getHours();
+
+      for (let i = 0; i < 24; i++) {
+        const idx = currentHour + i;
+        const timeStr = marine.hourly.time[idx];
+        if (!timeStr) break;
+        
+        // Parse time to HH:MM format
+        const hour = new Date(timeStr).getHours();
+        times.push(`${hour}:00`);
+
+        // Convert meter to cm
+        dataHeights.push(Math.round(marine.hourly.wave_height[idx] * 100));
+        dataPeriods.push(parseFloat((marine.hourly.wave_period[idx] || 0).toFixed(1)));
+      }
+
+      if (forecastChart) {
+        forecastChart.destroy();
+      }
+
+      const ctx = document.getElementById('waveForecastChart').getContext('2d');
+      forecastChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: times,
+          datasets: [
+            {
+              label: 'Dalga Yüksekliği (cm)',
+              data: dataHeights,
+              borderColor: '#00f5ff',
+              backgroundColor: 'rgba(0, 245, 255, 0.08)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Dalga Periyodu (sn)',
+              data: dataPeriods,
+              borderColor: '#6366f1',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.3,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#94a3b8',
+                font: { family: 'Inter', size: 11 }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#09172c',
+              titleColor: '#00f5ff',
+              bodyColor: '#f8fafc',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.03)' },
+              ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#00f5ff' },
+              title: {
+                display: true,
+                text: 'Dalga Yüksekliği (cm)',
+                color: '#00f5ff'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              grid: { drawOnChartArea: false }, // only want grid lines for height
+              ticks: { color: '#6366f1' },
+              title: {
+                display: true,
+                text: 'Dalga Periyodu (saniye)',
+                color: '#6366f1'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ----------------------------------------------------------------
+    // 8. MAP LOGIC (LEAFLET.JS)
+    // ----------------------------------------------------------------
+    function updateMap(beach) {
+      const lat = beach.lat;
+      const lon = beach.lon;
+
+      if (!map) {
+        // Initialize Map
+        map = L.map('beachMap', {
+          zoomControl: true,
+          attributionControl: false
+        }).setView([lat, lon], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
+
+        mapMarker = L.marker([lat, lon]).addTo(map);
+      } else {
+        // Fly to new position
+        map.setView([lat, lon], 12);
+        mapMarker.setLatLng([lat, lon]);
+      }
+
+      // Bind nice popup details
+      mapMarker.bindPopup(`<b>${beach.name}</b><br>${selectedCity}, ${selectedCountry}`).openPopup();
+      
+      // Fix leaflet resizing issue inside dynamic grid layout
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 500);
+    }
+
+    // ----------------------------------------------------------------
+    // 9. FORECAST DISPLAY LOGIC
+    // ----------------------------------------------------------------
+    function drawForecast(marine, forecast) {
+      const forecastGrid = document.getElementById('forecastGrid');
+      forecastGrid.innerHTML = '';
+
+      // We will generate predictions for the next 3 days.
+      // Day 0: Today, Day 1: Tomorrow, Day 2: Day after tomorrow.
+      // Hourly array contains 168 hours (7 days).
+      // Indexes: Day 0: 0-23, Day 1: 24-47, Day 2: 48-71, Day 3: 72-95.
+      // Let's render Day 1, Day 2, and Day 3.
+
+      const dayNames = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+
+      for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+        const startIdx = dayOffset * 24;
+        const endIdx = startIdx + 24;
+
+        // Slice wave variables for this day
+        const dayHeights = marine.hourly.wave_height.slice(startIdx, endIdx);
+        const dayPeriods = marine.hourly.wave_period.slice(startIdx, endIdx);
+        
+        // Find max wave height and average period
+        const maxMeters = Math.max(...dayHeights);
+        const maxCm = Math.round(maxMeters * 100);
+        const avgPeriod = parseFloat((dayPeriods.reduce((a,b)=>a+b, 0) / dayPeriods.length).toFixed(1));
+
+        // Slice weather variables for this day (take average/medians across models)
+        // Let's just use the GFS model arrays as representing average forecast trends for daily icons
+        const dayTemps = forecast.hourly.temperature_2m_gfs_seamless.slice(startIdx, endIdx);
+        const dayWinds = forecast.hourly.wind_speed_10m_gfs_seamless.slice(startIdx, endIdx);
+        const dayRains = (forecast.hourly.precipitation_probability_gfs_seamless || []).slice(startIdx, endIdx);
+
+        const maxTemp = Math.round(Math.max(...dayTemps));
+        const maxWind = Math.round(Math.max(...dayWinds));
+        const maxRainProb = Math.max(...dayRains);
+
+        // Date Label
+        const forecastDateStr = marine.hourly.time[startIdx];
+        const dateObj = new Date(forecastDateStr);
+        const dayOfWeek = dayNames[dateObj.getDay()];
+        const formattedDate = `${dateObj.getDate()} ${dateObj.toLocaleString('tr-TR', { month: 'short' })}`;
+
+        // Determine ocean state icon
+        let waveEmoji = "🌊";
+        let waveDesc = "Dalgalı";
+        if (maxCm < 30) {
+          waveEmoji = "💧";
+          waveDesc = "Durgun";
+        } else if (maxCm < 100) {
+          waveEmoji = "🌊";
+          waveDesc = "Hafif Dalgalı";
+        } else if (maxCm >= 200) {
+          waveEmoji = "🚨";
+          waveDesc = "Çok Dalgalı / Tehlikeli";
+        }
+
+        // Render card
+        const card = document.createElement('div');
+        card.className = 'forecast-card';
+        card.innerHTML = `
+          <div class="forecast-date">${formattedDate}</div>
+          <div class="forecast-day-name">${dayOfWeek}</div>
+          <div class="forecast-wave-icon" title="${waveDesc}">${waveEmoji}</div>
+          <div class="forecast-val-big">${maxCm} cm</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-top: -0.25rem;">Max Dalga</div>
+          
+          <div class="forecast-meta-grid">
+            <div class="forecast-meta-item">
+              <span class="forecast-meta-lbl">Dalga Per.</span>
+              <span class="forecast-meta-val">${avgPeriod} sn</span>
+            </div>
+            <div class="forecast-meta-item">
+              <span class="forecast-meta-lbl">Hava Sıcak.</span>
+              <span class="forecast-meta-val">${maxTemp}°C</span>
+            </div>
+            <div class="forecast-meta-item">
+              <span class="forecast-meta-lbl">Rüzgâr H.</span>
+              <span class="forecast-meta-val">${maxWind} km/h</span>
+            </div>
+            <div class="forecast-meta-item">
+              <span class="forecast-meta-lbl">Yağış İht.</span>
+              <span class="forecast-meta-val">%${maxRainProb}</span>
+            </div>
+          </div>
+        `;
+        forecastGrid.appendChild(card);
+      }
+    }
+  </script>
+</body>
+</html>
