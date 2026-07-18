@@ -1287,69 +1287,77 @@
     <!-- DASHBOARD PANEL (HIDDEN BY DEFAULT, SHOWN WHEN BEACH SELECTED) -->
     <div class="dashboard" id="dashboard">
 
-      <!-- BEACH HERO CONTAINER -->
-      <section class="beach-hero" id="beachHero">
-        <div class="beach-info">
-          <span class="beach-location-meta" id="beachLocationMeta">Antalya, Türkiye</span>
-          <h2 class="beach-name-title" id="beachNameTitle">Konyaaltı Plajı</h2>
-          <span class="live-badge">
-            <span class="live-dot"></span> Canlı Veri Raporu
-          </span>
+      <!-- BEACH HERO & LIVE WAVE SIMULATION CONTAINER -->
+      <section class="beach-hero wave-simulation-box" id="beachHero" style="position: relative; overflow: hidden; min-height: 340px; height: auto; justify-content: space-between; padding: 2rem; border-radius: 24px; background: #031026; border: 1px solid var(--card-border); box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; gap: 2rem;">
+        
+        <!-- Local shoreline photo (real simulation of sea vs sand) -->
+        <img class="shoreline-photo" id="shorelinePhoto" src="shoreline.png" alt="Deniz Simülasyonu" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+
+        <!-- Foam line dividing sea and sand -->
+        <div class="foam-strip" id="foamStrip" style="z-index: 2;"></div>
+
+        <!-- Darkness gradient for legibility -->
+        <div class="shoreline-overlay" style="z-index: 2; background: linear-gradient(to bottom, rgba(3, 10, 22, 0.65) 0%, rgba(3, 10, 22, 0.25) 50%, rgba(3, 10, 22, 0.85) 100%); pointer-events: none;"></div>
+
+        <!-- Flexbox Top Row Container (Responsive wrapping) -->
+        <div style="position: relative; z-index: 10; display: flex; flex-direction: column; gap: 1rem; width: 100%; pointer-events: none;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; width: 100%;">
+            
+            <!-- Left Side: Beach Info -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; min-width: 250px;">
+              <span class="beach-location-meta" id="beachLocationMeta" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">Antalya, Türkiye</span>
+              <h2 class="beach-name-title" id="beachNameTitle" style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 700; margin: 0; text-shadow: 0 2px 12px rgba(0,0,0,0.9); color: var(--text-main);">Konyaaltı Plajı</h2>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem;">
+                <span class="live-badge" style="margin: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                  <span class="live-dot"></span> Canlı Dalga Simülasyonu
+                </span>
+                <span class="wave-status-badge wave-status-hafif" id="waveStatusBadge" style="pointer-events: auto;">Hafif Dalgalı</span>
+              </div>
+            </div>
+
+            <!-- Right Side: Live Metrics -->
+            <div class="hero-metrics-overlay" style="display: flex; gap: 0.5rem; pointer-events: auto; align-self: flex-start;">
+              <div class="overlay-height" style="background: rgba(3, 10, 22, 0.75); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.5rem 0.9rem; border-radius: 10px; text-align: center; min-width: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="overlay-height-val" id="simHeightVal" style="font-size: 1.4rem; font-weight: 700; color: var(--accent-cyan); line-height: 1.2;">45 cm</div>
+                <div class="overlay-height-lbl" style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Dalga Boyu</div>
+              </div>
+              <div class="overlay-height" style="background: rgba(3, 10, 22, 0.75); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.5rem 0.9rem; border-radius: 10px; text-align: center; min-width: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="overlay-height-val" id="simPeriodVal" style="font-size: 1.4rem; font-weight: 700; color: var(--accent-indigo); line-height: 1.2;">4.2 sn</div>
+                <div class="overlay-height-lbl" style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Periyot</div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <!-- Hour selector bar -->
-        <div class="hour-selector-bar" id="hourSelectorBar">
-          <span class="hour-selector-label">🕐 Saat:</span>
+        <!-- Bottom Left Info Panel & Hour/Day selector bar -->
+        <div class="hour-selector-bar" id="hourSelectorBar" style="position: relative; z-index: 10; pointer-events: auto; background: rgba(3, 10, 22, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); padding: 0.65rem 1.25rem; border-radius: 14px; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; width: 100%;">
+          
+          <!-- Date Navigator -->
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <button class="hour-btn" id="prevDayBtn" style="padding: 0.4rem 0.7rem; font-size: 0.8rem; font-weight: 700;">◀</button>
+            <span id="activeDateDisplay" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-align: center; white-space: nowrap; background: rgba(0,0,0,0.35); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); min-width: 125px;">-</span>
+            <button class="hour-btn" id="nextDayBtn" style="padding: 0.4rem 0.7rem; font-size: 0.8rem; font-weight: 700;">▶</button>
+          </div>
+          
+          <div style="height: 18px; width: 1px; background: rgba(255,255,255,0.15); align-self: center;"></div>
+
+          <!-- Hour buttons slot -->
+          <div id="hourButtonsContainer" style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            <span class="hour-selector-label">🕐 Saat:</span>
+            <!-- Buttons go here dynamically -->
+          </div>
         </div>
       </section>
 
-      <!-- FIRST ROW: WAVE SIMULATOR & METRICS GRID -->
+      <!-- FIRST ROW: ANALYSIS & METRICS GRID -->
       <div class="dashboard-grid">
         
-        <!-- Left Side: Wave Simulation & Analysis + Safety Assessment Stack -->
+        <!-- Left Column: Wave Roughness Index & Detailed Assessment -->
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
           
-          <!-- Wave Simulation & Analysis Card -->
-          <div class="wave-simulator-card">
-            <div class="wave-simulator-header">
-              <div class="wave-simulator-title">
-                <span>🌊</span>
-                <span>Deniz Durumu Simülasyonu</span>
-              </div>
-              <span class="wave-status-badge wave-status-hafif" id="waveStatusBadge">Hafif Dalgalı</span>
-            </div>
-
-            <!-- Shoreline Photo Wave Box -->
-            <div class="wave-simulation-box" id="shorelineBox">
-              <!-- Real shoreline photo: top=sea, bottom=sand -->
-              <img class="shoreline-photo" id="shorelinePhoto" src="shoreline.png" alt="Kıyı şeridi - deniz ve kum">
-
-              <!-- Foam/surf strip at the boundary -->
-              <div class="foam-strip" id="foamStrip"></div>
-
-              <!-- Semi-transparent overlay for legibility -->
-              <div class="shoreline-overlay"></div>
-
-              <!-- Metrics overlay on top -->
-              <div class="wave-simulation-overlay">
-                <div class="overlay-height">
-                  <div class="overlay-height-val" id="simHeightVal">45 cm</div>
-                  <div class="overlay-height-lbl">Dalga Yüksekliği</div>
-                </div>
-                <div class="overlay-height" style="text-align: right;">
-                  <div class="overlay-height-val" id="simPeriodVal">4.2 sn</div>
-                  <div class="overlay-height-lbl">Dalga Periyodu</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Text analysis description -->
-            <p class="analysis-summary-box" id="analysisSummary">
-              Sabah saatlerinde sakin bir deniz beklenirken, öğleden sonra rüzgarın hızlanmasıyla dalga boyu hafifçe yükselebilir.
-            </p>
-          </div>
-
-          <!-- Deniz Durumu / Dalgalanma İndeksi Kartı -->
+          <!-- Deniz Durumu / Dalgalanma İndeksi & Değerlendirme Kartı -->
           <div class="safety-card">
             <div class="safety-header">
               <span class="safety-title">📊 Deniz Durumu &amp; Dalgalanma İndeksi</span>
@@ -1368,6 +1376,16 @@
                 <span>Sert</span>
                 <span>Çok Sert</span>
               </div>
+            </div>
+
+            <!-- Tahmin & Değerlendirme Özeti -->
+            <div style="margin-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                <span>💡</span> <span>Önizleme &amp; Analiz Özeti</span>
+              </div>
+              <p class="analysis-summary-box" id="analysisSummary" style="margin: 0; border-radius: 12px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03);">
+                Sabah saatlerinde sakin bir deniz beklenirken, öğleden sonra rüzgarın hızlanmasıyla dalga boyu hafifçe yükselebilir.
+              </p>
             </div>
           </div>
         </div>
@@ -1587,43 +1605,43 @@
         "Antalya": {
           isLandlocked: false,
           beaches: [
-            { name: "Konyaaltı Plajı", lat: 36.8772, lon: 30.6401, img: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Lara Plajı", lat: 36.8533, lon: 30.8033, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Kaputaş Plajı", lat: 36.2286, lon: 29.4491, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Kleopatra Plajı", lat: 36.5494, lon: 31.9954, img: "https://images.unsplash.com/photo-1623192080342-a169bdfcfcbf?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Olympos Plajı", lat: 36.3741, lon: 30.4721, img: "https://images.unsplash.com/photo-1578894381163-e72c17f2d45f?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Konyaaltı Plajı", lat: 36.8772, lon: 30.6401, img: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Konyaalt%C4%B1_Beach_2.jpg" },
+            { name: "Lara Plajı", lat: 36.8533, lon: 30.8033, img: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kaputaş Plajı", lat: 36.2286, lon: 29.4491, img: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Kaputa%C5%9F_Beach_Ka%C5%9F_Turkey.jpg" },
+            { name: "Kleopatra Plajı", lat: 36.5494, lon: 31.9954, img: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Alanya_-_Kleopatra_Beach_01.jpg" },
+            { name: "Olympos Plajı", lat: 36.3741, lon: 30.4721, img: "https://upload.wikimedia.org/wikipedia/commons/3/36/Olympos_beach_Turkey.jpg" }
           ]
         },
         "Muğla": {
           isLandlocked: false,
           beaches: [
-            { name: "Ölüdeniz Plajı", lat: 36.5484, lon: 29.1174, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
-            { name: "İztuzu Plajı", lat: 36.7900, lon: 28.6186, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Bodrum Bitez Plajı", lat: 37.0267, lon: 27.3828, img: "https://images.unsplash.com/photo-1563911302283-d2bc1db0bd3d?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Kelebekler Vadisi", lat: 36.4951, lon: 29.1228, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Ölüdeniz Plajı", lat: 36.5484, lon: 29.1174, img: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Oludeniz_beach.jpg" },
+            { name: "İztuzu Plajı", lat: 36.7900, lon: 28.6186, img: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Iztuzu_Beach_Dalyan_Turkey.jpg" },
+            { name: "Bodrum Bitez Plajı", lat: 37.0267, lon: 27.3828, img: "https://upload.wikimedia.org/wikipedia/commons/5/52/Bodrum_Bitez.jpg" },
+            { name: "Kelebekler Vadisi", lat: 36.4951, lon: 29.1228, img: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Butterfly_Valley_Fethiye_Turkey.jpg" }
           ]
         },
         "İzmir": {
           isLandlocked: false,
           beaches: [
-            { name: "Çeşme Ilıca Plajı", lat: 38.3075, lon: 26.3533, img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Alaçatı Plajı", lat: 38.2612, lon: 26.3814, img: "https://images.unsplash.com/photo-1589979482837-e744b7d140db?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Urla Kum Denizi Plajı", lat: 38.3615, lon: 26.7865, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Çeşme Ilıca Plajı", lat: 38.3075, lon: 26.3533, img: "https://upload.wikimedia.org/wikipedia/commons/3/36/%C3%87e%C5%9Fme_Ilica_Beach_01.jpg" },
+            { name: "Alaçatı Plajı", lat: 38.2612, lon: 26.3814, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Urla Kum Denizi Plajı", lat: 38.3615, lon: 26.7865, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
         "İstanbul": {
           isLandlocked: false,
           beaches: [
-            { name: "Kilyos Plajı", lat: 41.2514, lon: 29.0347, img: "https://images.unsplash.com/photo-1548685913-fe6578583bad?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Şile Ayazma Plajı", lat: 41.1803, lon: 29.6053, img: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Caddebostan Plajı", lat: 40.9719, lon: 29.0575, img: "https://images.unsplash.com/photo-1473116763269-25541579ffbe?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Kilyos Plajı", lat: 41.2514, lon: 29.0347, img: "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Şile Ayazma Plajı", lat: 41.1803, lon: 29.6053, img: "https://upload.wikimedia.org/wikipedia/commons/0/07/%C5%9Eile_Feneri_-_panoramio.jpg" },
+            { name: "Caddebostan Plajı", lat: 40.9719, lon: 29.0575, img: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Caddebostan_Beach_Istanbul.jpg" }
           ]
         },
         "Balıkesir": {
           isLandlocked: false,
           beaches: [
-            { name: "Ayvalık Sarımsaklı Plajı", lat: 39.2631, lon: 26.6806, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Altınoluk Plajı", lat: 39.5714, lon: 26.6853, img: "https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Ayvalık Sarımsaklı Plajı", lat: 39.2631, lon: 26.6806, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Altınoluk Plajı", lat: 39.5714, lon: 26.6853, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
         "Çanakkale": {
@@ -1636,7 +1654,7 @@
         "Mersin": {
           isLandlocked: false,
           beaches: [
-            { name: "Kızkalesi Plajı", lat: 36.4633, lon: 34.1481, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kızkalesi Plajı", lat: 36.4633, lon: 34.1481, img: "https://upload.wikimedia.org/wikipedia/commons/d/df/K%C4%B1zkalesi_Castle%2C_Mersin_Province%2C_Turkey.jpg" },
             { name: "Yapraklı Koy", lat: 36.4022, lon: 34.0531, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
@@ -1644,18 +1662,18 @@
           isLandlocked: false,
           beaches: [
             { name: "Yalıncak Aile Plajı", lat: 40.9639, lon: 39.8144, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Sürmene Çamburnu Plajı", lat: 40.9231, lon: 40.2033, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Sürmene Çamburnu Plajı", lat: 40.9231, lon: 40.2033, img: "https://upload.wikimedia.org/wikipedia/commons/3/33/%C3%87amburnu_Trabzon_Turkey.jpg" }
           ]
         },
         "Aydın": {
           isLandlocked: false,
           beaches: [
-            { name: "Kuşadası Kadınlar Denizi Plajı", lat: 37.8448, lon: 27.2612, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kuşadası Kadınlar Denizi Plajı", lat: 37.8448, lon: 27.2612, img: "https://upload.wikimedia.org/wikipedia/commons/c/c9/Kusadasi_Ladies_Beach.jpg" },
             { name: "Kuşadası Long Beach (Uzun Plaj)", lat: 37.8002, lon: 27.3094, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
             { name: "Pamucak Plajı", lat: 37.9033, lon: 27.2800, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
             { name: "Didim Altınkum Plajı", lat: 37.3712, lon: 27.2636, img: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=1200&auto=format&fit=crop&q=80" },
             { name: "Güzelçamlı Milli Park Plajı", lat: 37.7367, lon: 27.1783, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Davutlar Plajı", lat: 37.7583, lon: 27.2961, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Davutlar Plajı", lat: 37.7583, lon: 27.2961, img: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Love_Beach.jpg" }
           ]
         },
         // --- Akdeniz Bölgesi ---
@@ -1696,7 +1714,7 @@
           beaches: [
             { name: "Karamürsel Plajı", lat: 40.6947, lon: 29.6100, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" },
             { name: "Gölcük Plajı", lat: 40.7017, lon: 29.8267, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Kandıra Plajı", lat: 41.0658, lon: 30.1547, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Kandıra Plajı", lat: 41.0658, lon: 30.1547, img: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Kerpe_Kayal%C4%B1klar%C4%B1_Kocaeli.jpg" }
           ]
         },
         "Yalova": {
@@ -1709,7 +1727,7 @@
         "Bursa": {
           isLandlocked: false,
           beaches: [
-            { name: "Mudanya Plajı", lat: 40.3778, lon: 28.8858, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Mudanya Plajı", lat: 40.3778, lon: 28.8858, img: "https://upload.wikimedia.org/wikipedia/commons/3/30/Mudanya_coastline.jpg" },
             { name: "Gemlik Körfezi Plajı", lat: 40.4303, lon: 29.1561, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
@@ -1724,15 +1742,15 @@
         "Zonguldak": {
           isLandlocked: false,
           beaches: [
-            { name: "Amasra Plajı", lat: 41.7481, lon: 32.3850, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Amasra Plajı", lat: 41.7481, lon: 32.3850, img: "https://upload.wikimedia.org/wikipedia/commons/8/87/Amasra_Sunset.jpg" },
             { name: "Zonguldak Kıyı Plajı", lat: 41.4544, lon: 31.7933, img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
         "Bartın": {
           isLandlocked: false,
           beaches: [
-            { name: "Amasra Büyük Plaj", lat: 41.7489, lon: 32.3872, img: "https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&auto=format&fit=crop&q=80" },
-            { name: "İnkumu Plajı", lat: 41.6978, lon: 32.2236, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Amasra Büyük Plaj", lat: 41.7489, lon: 32.3872, img: "https://upload.wikimedia.org/wikipedia/commons/8/87/Amasra_Sunset.jpg" },
+            { name: "İnkumu Plajı", lat: 41.6978, lon: 32.2236, img: "https://upload.wikimedia.org/wikipedia/commons/d/df/%C4%B0nkumu_beach_Bart%C4%B1n.jpg" }
           ]
         },
         "Kastamonu": {
@@ -1745,8 +1763,8 @@
         "Sinop": {
           isLandlocked: false,
           beaches: [
-            { name: "Sinop Merkez Plajı", lat: 42.0231, lon: 35.1522, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Hamsilos Koyu", lat: 42.0700, lon: 35.0900, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Sinop Merkez Plajı", lat: 42.0231, lon: 35.1522, img: "https://upload.wikimedia.org/wikipedia/commons/0/03/Sinop_City_Walls_and_Coastline.jpg" },
+            { name: "Hamsilos Koyu", lat: 42.0700, lon: 35.0900, img: "https://upload.wikimedia.org/wikipedia/commons/e/ea/Hamsilos_Bay.jpg" }
           ]
         },
         "Samsun": {
@@ -1759,15 +1777,15 @@
         "Ordu": {
           isLandlocked: false,
           beaches: [
-            { name: "Perşembe Plajı", lat: 40.9994, lon: 37.7744, img: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Yason Burnu Plajı", lat: 40.9667, lon: 37.8453, img: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Perşembe Plajı", lat: 40.9994, lon: 37.7744, img: "https://upload.wikimedia.org/wikipedia/commons/e/ee/Yason_Burnu_Ordu.jpg" },
+            { name: "Yason Burnu Plajı", lat: 40.9667, lon: 37.8453, img: "https://upload.wikimedia.org/wikipedia/commons/e/ee/Yason_Burnu_Ordu.jpg" }
           ]
         },
         "Giresun": {
           isLandlocked: false,
           beaches: [
             { name: "Giresun Ada Plajı", lat: 40.9253, lon: 38.4069, img: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&auto=format&fit=crop&q=80" },
-            { name: "Tirebolu Plajı", lat: 41.0025, lon: 38.8203, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" }
+            { name: "Tirebolu Plajı", lat: 41.0025, lon: 38.8203, img: "https://upload.wikimedia.org/wikipedia/commons/1/12/Tirebolu_Castle_and_Sea.jpg" }
           ]
         },
         "Rize": {
@@ -1794,7 +1812,7 @@
         "Kırklareli": {
           isLandlocked: false,
           beaches: [
-            { name: "Kıyıköy Plajı", lat: 41.6219, lon: 27.9703, img: "https://images.unsplash.com/photo-1520116468816-95b69f847357?w=1200&auto=format&fit=crop&q=80" },
+            { name: "Kıyıköy Plajı", lat: 41.6219, lon: 27.9703, img: "https://upload.wikimedia.org/wikipedia/commons/2/29/K%C4%B1y%C4%B1k%C3%B6y_coastline.jpg" },
             { name: "Limanköy Plajı", lat: 41.6000, lon: 27.9500, img: "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=1200&auto=format&fit=crop&q=80" }
           ]
         },
@@ -1923,6 +1941,7 @@
     let cachedMarine = null;
     let cachedForecast = null;
     let selectedHour = null; // will be set to nearest 3h slot on load
+    let selectedDayOffset = 0; // 0 = today, 1 = tomorrow, etc. (0 to 6)
 
     // ----------------------------------------------------------------
     // 3. INITIALIZATION & SETUP
@@ -1941,6 +1960,22 @@
         const cityObj = locationDatabase[selectedCountry][selectedCity];
         const beach = cityObj.beaches.find(b => b.name === e.target.value);
         if (beach) setBeach(beach);
+      });
+
+      // Wire up Date navigator buttons
+      document.getElementById('prevDayBtn').addEventListener('click', () => {
+        if (selectedDayOffset > 0 && cachedMarine && cachedForecast) {
+          selectedDayOffset--;
+          buildHourSelector(cachedMarine, cachedForecast);
+          updateDashboardUI(cachedMarine, cachedForecast);
+        }
+      });
+      document.getElementById('nextDayBtn').addEventListener('click', () => {
+        if (selectedDayOffset < 6 && cachedMarine && cachedForecast) {
+          selectedDayOffset++;
+          buildHourSelector(cachedMarine, cachedForecast);
+          updateDashboardUI(cachedMarine, cachedForecast);
+        }
       });
 
       // Select Turkey as default, Aydın Davutlar Plajı
@@ -2056,16 +2091,30 @@
     }
 
     // ----------------------------------------------------------------
-    // 5. HOUR SELECTOR
+    // 5. HOUR & DAY SELECTOR
     // ----------------------------------------------------------------
     const HOUR_SLOTS = [0, 3, 6, 9, 12, 15, 18, 21];
 
     function buildHourSelector(marine, forecast) {
-      const bar = document.getElementById('hourSelectorBar');
-      // Keep label, remove old buttons
-      bar.innerHTML = '<span class="hour-selector-label">🕐 Saat:</span>';
+      // Format active date display in Turkish
+      const dateStr = marine.hourly.time[selectedDayOffset * 24];
+      const dateObj = new Date(dateStr);
+      const dayNames = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+      const dayOfWeek = dayNames[dateObj.getDay()];
+      const formattedDate = `${dateObj.getDate()} ${dateObj.toLocaleString('tr-TR', { month: 'short' })} ${dayOfWeek}`;
+      document.getElementById('activeDateDisplay').innerText = formattedDate;
 
-      // Find current hour to pick nearest slot
+      // Enable/Disable navigation buttons
+      const prevBtn = document.getElementById('prevDayBtn');
+      const nextBtn = document.getElementById('nextDayBtn');
+      prevBtn.disabled = selectedDayOffset === 0;
+      nextBtn.disabled = selectedDayOffset === 6;
+
+      // Populate hour buttons
+      const container = document.getElementById('hourButtonsContainer');
+      container.innerHTML = '<span class="hour-selector-label">🕐 Saat:</span>';
+
+      // Pick nearest slot if selectedHour is null
       const now = new Date();
       const nowHour = now.getHours();
       const nearestSlot = HOUR_SLOTS.reduce((prev, curr) =>
@@ -2073,7 +2122,6 @@
       );
       if (selectedHour === null) selectedHour = nearestSlot;
 
-      // Build one button per slot using today's date as default
       HOUR_SLOTS.forEach(h => {
         const btn = document.createElement('button');
         btn.className = 'hour-btn' + (h === selectedHour ? ' active' : '');
@@ -2081,14 +2129,14 @@
         btn.dataset.hour = h;
         btn.addEventListener('click', () => {
           selectedHour = h;
-          document.querySelectorAll('.hour-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('#hourButtonsContainer .hour-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           // Re-render dashboard with selected hour
           if (cachedMarine && cachedForecast) {
             updateDashboardUI(cachedMarine, cachedForecast);
           }
         });
-        bar.appendChild(btn);
+        container.appendChild(btn);
       });
     }
 
@@ -2099,6 +2147,7 @@
       const loading = document.getElementById('loadingOverlay');
       loading.style.display = 'flex';
       selectedHour = null; // reset hour on new beach load
+      selectedDayOffset = 0; // reset day to today
 
       try {
         const lat = beach.lat;
@@ -2122,8 +2171,6 @@
         buildHourSelector(marineData, forecastData);
 
         // Update hero info
-        const hero = document.getElementById('beachHero');
-        hero.style.backgroundImage = `url('${beach.img || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200"}')`;
         document.getElementById('beachLocationMeta').innerText = `${selectedCity}, ${selectedCountry}`;
         document.getElementById('beachNameTitle').innerText = beach.name;
 
@@ -2154,10 +2201,10 @@
     }
 
     function updateDashboardUI(marine, forecast) {
-      // Extract current hour index based on selectedHour slot
+      // Extract current hour index based on selectedHour slot & selectedDayOffset
       // Open-Meteo returns 168 hours (7 days) starting from today 00:00
-      // hIdx: today's selectedHour index = selectedHour (since 1 index = 1 hour)
-      const hIdx = selectedHour !== null ? selectedHour : new Date().getHours();
+      const baseHour = selectedHour !== null ? selectedHour : new Date().getHours();
+      const hIdx = (selectedDayOffset * 24) + baseHour;
 
       // 2. Extract Marine Parameters
       const rawHeight = marine.hourly.wave_height[hIdx] || 0; // in meters
@@ -2343,8 +2390,8 @@
       document.getElementById('mUvIndex').innerText = `${Math.round(rawUv)} (${uvLabel})`;
 
       // 5. Generate Short Dynamic Summary Description
-      // We read the first 24 hours wave forecasts (index 0 to 23)
-      const dailyHeights = marine.hourly.wave_height.slice(0, 24);
+      // We read the 24 hours wave forecasts for the selected day
+      const dailyHeights = marine.hourly.wave_height.slice(selectedDayOffset * 24, (selectedDayOffset * 24) + 24);
       
       const morningH = dailyHeights.slice(6, 12); // 06:00 - 12:00
       const afternoonH = dailyHeights.slice(12, 18); // 12:00 - 18:00
@@ -2463,12 +2510,11 @@
       const dataHeights = [];
       const dataPeriods = [];
 
-      // Extract next 24 hourly data points starting from the current hour
-      const now = new Date();
-      const currentHour = now.getHours();
+      // Extract next 24 hourly data points starting from the selected day's 00:00
+      const startIdx = selectedDayOffset * 24;
 
       for (let i = 0; i < 24; i++) {
-        const idx = currentHour + i;
+        const idx = startIdx + i;
         const timeStr = marine.hourly.time[idx];
         if (!timeStr) break;
         
